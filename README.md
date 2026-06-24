@@ -1,5 +1,5 @@
-# Huffman Text Compressor
+# Online Chess Website
 
-This repository contains the implementation of a Huffman Coding based text compressor in Python.
+A React-based chess application implementing complete chess rules and game state management.
 
 Status: Under Development
