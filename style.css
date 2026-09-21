@@ -1,0 +1,270 @@
+/* ------------------------------------------------------------------ */
+/* Tokens                                                              */
+/* ------------------------------------------------------------------ */
+:root {
+  --color-bg: #1b202b;
+  --color-panel: #262c3a;
+  --color-panel-border: #333c4f;
+
+  --color-text: #f4f1ea;
+  --color-text-muted: #a9afc0;
+
+  --color-square-light: #ede6d6;
+  --color-square-dark: #7c5a46;
+  --color-board-border: #14171f;
+
+  --color-accent: #d8b13c;
+  --color-selected: rgba(216, 177, 60, 0.55);
+  --color-danger: #e0607a;
+
+  --font-display: "Newsreader", Georgia, serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+/* ------------------------------------------------------------------ */
+/* Page chrome                                                         */
+/* ------------------------------------------------------------------ */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1rem, 3vw, 1.75rem);
+  padding: clamp(1rem, 4vw, 3rem) 1rem;
+}
+
+.app-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  letter-spacing: 0.01em;
+  margin: 0;
+  color: var(--color-text);
+  text-align: center;
+}
+
+/* ------------------------------------------------------------------ */
+/* ChessGame — the panel that frames status + board                    */
+/* ------------------------------------------------------------------ */
+.chess-game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  max-width: 680px;
+
+  background: var(--color-panel);
+  border: 1px solid var(--color-panel-border);
+  border-radius: 16px;
+  padding: clamp(1rem, 3vw, 1.75rem);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+/* On very small screens, drop the panel chrome so every pixel goes to
+   the board instead of decorative padding/borders. */
+@media (max-width: 380px) {
+  .chess-game {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0.25rem 0;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Game status                                                         */
+/* ------------------------------------------------------------------ */
+.game-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55em;
+
+  font-size: clamp(1rem, 2.4vw, 1.2rem);
+  font-weight: 500;
+  color: var(--color-text);
+  min-height: 1.6em;
+  text-align: center;
+}
+
+/* Small filled circle showing whose move it is (or who just won),
+   independent of the text — a quick-glance indicator. */
+.game-status::before {
+  content: "";
+  flex: none;
+  width: 0.7em;
+  height: 0.7em;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--color-panel-border);
+}
+
+.game-status[data-player="white"]::before {
+  background: var(--color-square-light);
+}
+
+.game-status[data-player="black"]::before {
+  background: #2b2f38;
+  box-shadow: 0 0 0 1px var(--color-text-muted);
+}
+
+.game-status.status-check {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.game-status.status-checkmate {
+  color: var(--color-danger);
+  font-weight: 700;
+  font-size: clamp(1.1rem, 2.8vw, 1.4rem);
+}
+
+.move-warning {
+  font-size: clamp(0.82rem, 2vw, 0.92rem);
+  color: var(--color-text-muted);
+  min-height: 1.2em;
+  text-align: center;
+}
+
+/* ------------------------------------------------------------------ */
+/* Board wrapper (game-over dimming lives here, not on ChessBoard)     */
+/* ------------------------------------------------------------------ */
+.board-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.board-wrapper.game-over .chess-board {
+  opacity: 0.85;
+  filter: saturate(0.75);
+}
+
+.board-wrapper.game-over .square {
+  cursor: default;
+}
+
+/* ------------------------------------------------------------------ */
+/* ChessBoard                                                          */
+/* ------------------------------------------------------------------ */
+.chess-board {
+  /* Lets pieces size themselves off the board's own rendered width
+     (via cqi units below) instead of the viewport — correct even when
+     the board's size is being limited by viewport HEIGHT rather than
+     width (e.g. a tall, narrow window). */
+  container-type: inline-size;
+
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+
+  width: min(88vw, 62vh, 560px);
+  aspect-ratio: 1 / 1;
+
+  border: 3px solid var(--color-board-border);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* ------------------------------------------------------------------ */
+/* Square                                                              */
+/* ------------------------------------------------------------------ */
+.square {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.square-light {
+  background-color: var(--color-square-light);
+}
+
+.square-dark {
+  background-color: var(--color-square-dark);
+}
+
+/* Only apply hover feedback on devices that actually have a pointer
+   that can hover (skip it on touchscreens, where it would otherwise
+   "stick" after a tap). */
+@media (hover: hover) and (pointer: fine) {
+  .square:hover::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.square-selected::after {
+  content: "";
+  position: absolute;
+  inset: 3%;
+  border-radius: 6px;
+  background: var(--color-selected);
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+
+.square:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: -3px;
+  z-index: 1;
+}
+
+.square:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Piece glyphs                                                        */
+/* ------------------------------------------------------------------ */
+.piece {
+  position: relative;
+  z-index: 1;
+  line-height: 1;
+
+  /* Fallback for browsers without container query support: scale off
+     the viewport. Overridden below by the cqi-based rule where supported. */
+  font-size: min(7vw, 44px);
+
+  /* A slight shadow keeps light-colored glyphs (white pieces) readable
+     on the light squares without needing separate piece art. */
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+  pointer-events: none;
+}
+
+/* Scale the piece directly off the BOARD's own width (100cqi = full
+   board width, so ~1/8 of that is one square) rather than the viewport,
+   so glyphs stay correctly proportioned to the board at any size. */
+@supports (font-size: 1cqi) {
+  .piece {
+    font-size: clamp(20px, 8cqi, 56px);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Responsive tweaks                                                   */
+/* ------------------------------------------------------------------ */
+@media (max-width: 480px) {
+  .chess-board {
+    width: min(94vw, 60vh);
+    border-width: 2px;
+  }
+}
